@@ -125,7 +125,7 @@ const steps = [
 
 /* ─── Main Component ────────────────────────────────────────── */
 export default function Home() {
-  const { account, connectWallet, loading } = useWallet();
+  const { account, connectWallet, loading, error } = useWallet();
   const navigate = useNavigate();
 
   const [statsRef, statsInView] = useInView(0.3);
@@ -303,6 +303,29 @@ export default function Home() {
           <p style={{ marginTop: 14, fontSize: 12, color: "#cacacaff", fontFamily: "var(--font-content)" }}>
             Works with MetaMask and any Web3 wallet
           </p>
+
+          {/* Error feedback */}
+          {error && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: "10px 18px",
+                background: "rgba(239,68,68,0.12)",
+                border: "1px solid rgba(239,68,68,0.35)",
+                borderRadius: 10,
+                color: "#f87171",
+                fontSize: 13,
+                fontFamily: "var(--font-content)",
+                maxWidth: 380,
+                textAlign: "center",
+                lineHeight: 1.5,
+              }}
+            >
+              {error.includes("MetaMask not found")
+                ? "MetaMask not detected. We've opened the install page for you — install it, refresh, and try again."
+                : error}
+            </div>
+          )}
         </div>
       </section>
 

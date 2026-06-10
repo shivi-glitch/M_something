@@ -1,8 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { ABI, CONTRACT_ADDRESS } from "../abi";
 
 const WalletContext = createContext();
+
+export const hasMetaMask = () => typeof window !== "undefined" && Boolean(window.ethereum);
 
 export function WalletProvider({ children }) {
   const [account, setAccount] = useState(null);
@@ -15,7 +17,11 @@ export function WalletProvider({ children }) {
 
   // ── helpers ────────────────────────────────────────────────
   function getProvider() {
-    if (!window.ethereum) throw new Error("MetaMask not found. Please install it.");
+    if (!window.ethereum) {
+      // Open MetaMask install page in a new tab
+      window.open("https://metamask.io/download/", "_blank", "noopener,noreferrer");
+      throw new Error("MetaMask not found. Opening install page in a new tab…");
+    }
     return new ethers.BrowserProvider(window.ethereum);
   }
 
@@ -117,6 +123,7 @@ export function WalletProvider({ children }) {
         balance,
         loading,
         error,
+        hasMetaMask: hasMetaMask(),
         connectWallet,
         disconnectWallet,
         refreshBalance,
