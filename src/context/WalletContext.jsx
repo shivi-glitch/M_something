@@ -1,98 +1,111 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { ethers } from "ethers";
+import { ABI, CONTRACT_ADDRESS } from "../abi";
 
 const WalletContext = createContext();
 
-// ─── Fake Data ───────────────────────────────────────────────
-const MOCK_ACCOUNT = "0xAbCd1234EfGh5678IjKl9012MnOp3456QrSt7890";
-const MOCK_OWNERS = [
-  "0xAbCd1234EfGh5678IjKl9012MnOp3456QrSt7890",
-  "0x1111222233334444555566667777888899990000",
-  "0xAAAABBBBCCCCDDDDEEEEFFFF000011112222333",
-];
-const MOCK_THRESHOLD = 2;
-const MOCK_BALANCE = "1.5";
-
-const MOCK_TRANSACTIONS = [
-  {
-    id: 0,
-    recipient: "0x1111222233334444555566667777888899990000",
-    amount: "0.5",
-    approvalCount: 2,
-    executed: true,
-    alreadyApproved: true,
-  },
-  {
-    id: 1,
-    recipient: "0xAAAABBBBCCCCDDDDEEEEFFFF000011112222333",
-    amount: "0.25",
-    approvalCount: 1,
-    executed: false,
-    alreadyApproved: true,
-  },
-  {
-    id: 2,
-    recipient: "0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF",
-    amount: "0.1",
-    approvalCount: 0,
-    executed: false,
-    alreadyApproved: false,
-  },
-];
-// ─────────────────────────────────────────────────────────────
-
 export function WalletProvider({ children }) {
   const [account, setAccount] = useState(null);
+  const [contract, setContract] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [threshold] = useState(MOCK_THRESHOLD);
-  const [balance, setBalance] = useState(MOCK_BALANCE);
+  const [threshold, setThreshold] = useState(0);
+  const [balance, setBalance] = useState("0");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fake connect — just sets mock data after a short delay
+  // ── helpers ────────────────────────────────────────────────
+  function getProvider() {
+    if (!window.ethereum) throw new Error("MetaMask not found. Please install it.");
+    return new ethers.BrowserProvider(window.ethereum);
+  }
+
+  async function fetchBalance(provider) {
+    const bal = await provider.getBalance(CONTRACT_ADDRESS);
+    setBalance(ethers.formatEther(bal));
+  }
+
+  // ── connect ────────────────────────────────────────────────
   async function connectWallet() {
     setLoading(true);
-    await new Promise((res) => setTimeout(res, 800)); // fake loading
-    setAccount(MOCK_ACCOUNT);
-    setIsOwner(true); // set to false to test non-owner view
+    setError(null);
+    try {
+      const provider = getProvider();
+
+      // trigger MetaMask popup
+      await provider.send("eth_requestAccounts", []);
+
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      const c = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      const [ownerStatus, thresh] = await Promise.all([
+        c.isOwner(address),
+        c.threshold(),
+      ]);
+
+      await fetchBalance(provider);
+
+      setAccount(address);
+      setContract(c);
+      setIsOwner(ownerStatus);
+      setThreshold(Number(thresh));
+    } catch (err) {
+      console.error("Connect error:", err);
+      if (err.code === 4001) {
+        setError("Connection rejected. Please approve MetaMask.");
+      } else {
+        setError(err.message ?? "Failed to connect.");
+      }
+    }
     setLoading(false);
   }
 
+  // ── disconnect ─────────────────────────────────────────────
   function disconnectWallet() {
     setAccount(null);
+    setContract(null);
     setIsOwner(false);
+    setThreshold(0);
+    setBalance("0");
+    setError(null);
   }
 
+  // ── refresh balance ────────────────────────────────────────
   async function refreshBalance() {
-    // no-op in mock mode
+    try {
+      const provider = getProvider();
+      await fetchBalance(provider);
+    } catch (err) {
+      console.error("Balance refresh error:", err);
+    }
   }
 
-  // Fake contract object — methods return mock data so your pages don't crash
-  const contract = account
-    ? {
-        owners: async (i) => {
-          if (i >= MOCK_OWNERS.length) throw new Error("out of bounds");
-          return MOCK_OWNERS[i];
-        },
-        allTransactions: async (i) => {
-          if (i >= MOCK_TRANSACTIONS.length) throw new Error("out of bounds");
-          const t = MOCK_TRANSACTIONS[i];
-          return {
-            recipient: t.recipient,
-            amount: BigInt(Math.round(parseFloat(t.amount) * 1e18)).toString(),
-            approvalCount: BigInt(t.approvalCount),
-            executed: t.executed,
-          };
-        },
-        approvals: async (txid) => {
-          return MOCK_TRANSACTIONS[txid]?.alreadyApproved ?? false;
-        },
-        threshold: async () => BigInt(MOCK_THRESHOLD),
-        isOwner: async () => true,
-        deposit: async () => ({ wait: async () => {} }),
-        submitTransaction: async () => ({ wait: async () => {} }),
-        approveTransaction: async () => ({ wait: async () => {} }),
-        executeTransaction: async () => ({ wait: async () => {} }),
+  // ── MetaMask event listeners ───────────────────────────────
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    const onAccountsChanged = (accounts) => {
+      if (accounts.length === 0) {
+        disconnectWallet();
+      } else {
+        // account switched — reconnect fresh
+        connectWallet();
       }
-    : null;
+    };
+
+    const onChainChanged = () => {
+      // reload so provider & contract re-init on the new chain
+      window.location.reload();
+    };
+
+    window.ethereum.on("accountsChanged", onAccountsChanged);
+    window.ethereum.on("chainChanged", onChainChanged);
+
+    return () => {
+      window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+      window.ethereum.removeListener("chainChanged", onChainChanged);
+    };
+  }, []);
 
   return (
     <WalletContext.Provider
@@ -103,6 +116,7 @@ export function WalletProvider({ children }) {
         threshold,
         balance,
         loading,
+        error,
         connectWallet,
         disconnectWallet,
         refreshBalance,
