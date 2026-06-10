@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fruktur:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Comic+Relief:wght@400;700&display=swap');
 
 @import "tailwindcss";
 
@@ -21,6 +21,9 @@
   /* Font stacks */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-content: 'Comic Relief', cursive, sans-serif;
+  --font-brand: 'Fruktur', cursive;
 
   /* Sidebar width */
   --sidebar-w: 240px;
@@ -79,10 +82,10 @@ body {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 60px;
-  background: rgba(10,10,15,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
+  background: #000000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid rgba(168,85,247,0.2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -469,12 +472,14 @@ body {
   letter-spacing: -0.03em;
   color: var(--color-text);
   line-height: 1.2;
+  font-family: var(--font-heading);
 }
 .page-sub {
   font-size: 13.5px;
   color: var(--color-muted);
   margin-top: 3px;
   padding-bottom: 20px;
+  font-family: var(--font-content);
 }
 .page-body { padding: 28px 40px 40px; }
 
@@ -510,3 +515,27 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.3s ease forwards; }
+
+/* ── Step card slide-in animation ────────────────────────────── */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(48px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.step-card-animate {
+  opacity: 0;
+  animation: slideInLeft 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.step-card-animate:nth-child(2) { animation-name: slideInUp; animation-delay: 0.28s; }
+.step-card-animate:nth-child(3) { animation-name: slideInLeft; animation-delay: 0.56s; }
+
+/* ── Gradient purple text ─────────────────────────────────────── */
+.purple-gradient-text {
+  background: linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #e879f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

@@ -6,7 +6,12 @@ export default function TopNavbar() {
   const { connectWallet, loading } = useWallet();
 
   return (
-    <nav className="top-navbar">
+    <nav className="top-navbar" style={{
+      background: "rgba(15, 15, 20, 0.55)",
+      backdropFilter: "blur(18px)",
+      WebkitBackdropFilter: "blur(18px)",
+      borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
+    }}>
       {/* Logo */}
       <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
         <div style={{
@@ -20,12 +25,11 @@ export default function TopNavbar() {
           <Shield size={15} />
         </div>
         <span style={{
-          fontFamily: "var(--font-mono)",
-          fontWeight: 600,
-          fontSize: 13,
+          fontFamily: "var(--font-brand)",
+          fontWeight: 400,
+          fontSize: 18,
           color: "var(--color-neon)",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          letterSpacing: "0.04em",
         }}>
           MultiSig
         </span>

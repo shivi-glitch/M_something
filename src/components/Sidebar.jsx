@@ -39,12 +39,11 @@ export default function Sidebar() {
           </div>
           <div>
             <div style={{
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: "var(--font-mono)",
+              fontSize: 18,
+              fontWeight: 400,
+              fontFamily: "var(--font-brand)",
               color: "var(--color-neon)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
+              letterSpacing: "0.04em",
               lineHeight: 1.1,
             }}>
               MultiSig
@@ -53,7 +52,7 @@ export default function Sidebar() {
               fontSize: 10,
               color: "var(--color-muted)",
               letterSpacing: "0.04em",
-              fontFamily: "var(--font-mono)",
+              fontFamily: "var(--font-content)",
               marginTop: 1,
             }}>
               Vault
@@ -125,10 +124,27 @@ export default function Sidebar() {
                 </div>
               </div>
               <button
-                className="btn-ghost"
                 onClick={disconnectWallet}
                 title="Disconnect"
-                style={{ padding: "6px", borderRadius: 6 }}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 6,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#ef4444",
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "background 0.15s ease, color 0.15s ease",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(239,68,68,0.1)";
+                  e.currentTarget.style.color = "#f87171";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#ef4444";
+                }}
               >
                 <LogOut size={14} />
               </button>

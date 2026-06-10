@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import Sidebar from "./components/Sidebar";
 import TopNavbar from "./components/TopNavbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ClickSpark from "./components/ClickSpark";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Submit from "./pages/Submit";
@@ -16,7 +17,7 @@ function AppLayout() {
   return (
     <>
       {isHome ? (
-        /* Home: top navbar, full-width content */
+        /* Home: top navbar, full-width content — no spark on homepage */
         <>
           <TopNavbar />
           <main style={{ paddingTop: 60 }}>
@@ -26,46 +27,48 @@ function AppLayout() {
           </main>
         </>
       ) : (
-        /* Authenticated pages: left sidebar layout */
-        <div className="app-shell">
-          <Sidebar />
-          <main className="main-content">
-            <Routes>
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/submit"
-                element={
-                  <ProtectedRoute ownerOnly>
-                    <Submit />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/approve"
-                element={
-                  <ProtectedRoute ownerOnly>
-                    <Approve />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/transactions"
-                element={
-                  <ProtectedRoute>
-                    <Transactions />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </main>
-        </div>
+        /* Authenticated pages: ClickSpark enabled */
+        <ClickSpark enabled>
+          <div className="app-shell">
+            <Sidebar />
+            <main className="main-content" style={{ fontFamily: "var(--font-content)" }}>
+              <Routes>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/submit"
+                  element={
+                    <ProtectedRoute ownerOnly>
+                      <Submit />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/approve"
+                  element={
+                    <ProtectedRoute ownerOnly>
+                      <Approve />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/transactions"
+                  element={
+                    <ProtectedRoute>
+                      <Transactions />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+        </ClickSpark>
       )}
     </>
   );
@@ -84,7 +87,7 @@ export default function App() {
             border: "1px solid rgba(168,85,247,0.35)",
             borderRadius: "8px",
             fontSize: "13.5px",
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: "var(--font-content)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
           },
           success: {
